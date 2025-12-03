@@ -1,0 +1,66 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: #1a1a1a;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #252526;
+  color: white;
+  border-bottom: 1px solid #333;
+  min-height: 48px;
+}
+
+.app-header h1 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.app-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ReactFlow 样式覆盖 */
+.react-flow__node {
+  cursor: pointer;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2;
+}
+
+.react-flow__connection-line {
+  stroke: #007acc;
+  stroke-width: 2;
+}
+
+.react-flow__controls {
+  background: #2d2d30;
+  border: 1px solid #333;
+  border-radius: 4px;
+}
+
+.react-flow__controls-button {
+  background: #2d2d30;
+  border-bottom: 1px solid #333;
+  fill: #aaa;
+}
+
+.react-flow__controls-button:hover {
+  background: #3c3c3c;
+}
+
+.react-flow__minimap {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 4px;
+}

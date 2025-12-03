@@ -1,0 +1,86 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #3c3c3c;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: #4a4a4a;
+  border-color: #666;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-btn.primary {
+  background: #0e639c;
+  border-color: #1177bb;
+}
+
+.toolbar-btn.primary:hover:not(:disabled) {
+  background: #1177bb;
+}
+
+.toolbar-btn.primary.running {
+  background: #0e639c;
+}
+
+.toolbar-btn .icon {
+  font-size: 12px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #555;
+  margin: 0 8px;
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.toolbar-error {
+  color: #f44336;
+  font-size: 12px;
+  padding: 4px 8px;
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 4px;
+  cursor: help;
+}
+
+.toolbar-success {
+  color: #4caf50;
+  font-size: 12px;
+  padding: 4px 8px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 4px;
+}
+
