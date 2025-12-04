@@ -1,14 +1,15 @@
 """运行路由"""
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from typing import Optional
-import uuid
-import time
 
-from app.models.run import RunRequest, RunResponse, RunDetail
-from app.models.workflow import Workflow
-from app.routers.workflows import workflows_db
-from app.core.workflow import WorkflowEngine
+import time
+import uuid
+from typing import Optional
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+
 from app.core.nodes.registry import NodeRegistry
+from app.core.workflow import WorkflowEngine
+from app.models.run import RunDetail, RunRequest, RunResponse
+from app.routers.workflows import storage
 from app.utils.image import image_to_base64, image_to_thumbnail
 
 router = APIRouter()
@@ -20,10 +21,10 @@ workflow_engine = WorkflowEngine(node_registry)
 @router.post("", response_model=RunResponse)
 async def run_workflow(request: RunRequest, background_tasks: BackgroundTasks):
     """执行工作流"""
-    if request.workflow_id not in workflows_db:
+    workflow = storage.get(request.workflow_id)
+    if not workflow:
         raise HTTPException(status_code=404, detail="工作流不存在")
 
-    workflow = workflows_db[request.workflow_id]
     run_id = str(uuid.uuid4())
 
     # 异步执行
@@ -59,6 +60,7 @@ async def get_run_status(run_id: str):
             # 如果是图像，转换为Base64
             if output.data_type == "image" and output.value is not None:
                 import numpy as np
+
                 if isinstance(output.value, np.ndarray):
                     output.thumbnail = image_to_thumbnail(output.value)
                     output.value = image_to_base64(output.value)
@@ -106,4 +108,3 @@ async def cancel_run(run_id: str):
     """取消运行"""
     workflow_engine.cancel_run(run_id)
     return {"message": "运行已取消"}
-

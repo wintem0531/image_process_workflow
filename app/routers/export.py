@@ -1,12 +1,10 @@
 """代码导出路由"""
-from fastapi import APIRouter, HTTPException
-from typing import Optional
 
-from app.models.workflow import Workflow
-from app.routers.workflows import workflows_db
-from app.core.nodes.registry import NodeRegistry
-from app.core.workflow import WorkflowEngine
+from fastapi import APIRouter, HTTPException
+
 from app.core.code_generator import CodeGenerator
+from app.core.nodes.registry import NodeRegistry
+from app.routers.workflows import storage
 
 router = APIRouter()
 node_registry = NodeRegistry()
@@ -25,12 +23,11 @@ async def export_workflow(workflow_id: str, mode: str = "script"):
     Returns:
         代码内容
     """
-    if workflow_id not in workflows_db:
+    workflow = storage.get(workflow_id)
+    if not workflow:
         raise HTTPException(status_code=404, detail="工作流不存在")
-
-    workflow = workflows_db[workflow_id]
     code_generator = CodeGenerator(node_registry)
-    
+
     if mode == "script":
         code = code_generator.generate_script(workflow)
     elif mode == "module":
@@ -44,4 +41,3 @@ async def export_workflow(workflow_id: str, mode: str = "script"):
         "mode": mode,
         "code": code,
     }
-

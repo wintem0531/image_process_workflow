@@ -4,7 +4,7 @@ import { useWorkflowStore } from '../store/workflowStore'
 import './Toolbar.css'
 
 export default function Toolbar() {
-  const { nodes, edges, workflowId, runStatus, setWorkflowId, setRunStatus, updateNodeData } = useWorkflowStore()
+  const { nodes, edges, workflowId, runStatus, setWorkflowId, setRunStatus, updateNodeData, clearAll } = useWorkflowStore()
 
   // 运行工作流
   const runMutation = useMutation({
@@ -160,6 +160,13 @@ export default function Toolbar() {
 
   const isRunning = runStatus.status === 'running' || runMutation.isPending
 
+  const handleClearAll = () => {
+    if (confirm('确定要清空所有节点吗？此操作将清除缓存并重置工作流。')) {
+      clearAll()
+      setWorkflowId(null)
+    }
+  }
+
   return (
     <div className="toolbar">
       <button
@@ -198,6 +205,18 @@ export default function Toolbar() {
       >
         <span className="icon">📦</span>
         导出模块
+      </button>
+
+      <div className="toolbar-divider"></div>
+
+      <button
+        className="toolbar-btn"
+        onClick={handleClearAll}
+        disabled={isRunning}
+        title="清空所有节点并重置工作流"
+      >
+        <span className="icon">🗑️</span>
+        清空
       </button>
 
       {runStatus.status === 'failed' && runStatus.error && (

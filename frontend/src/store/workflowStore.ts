@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { Node, Edge } from 'reactflow'
 
 interface RunStatus {
@@ -24,60 +25,90 @@ interface WorkflowState {
   setWorkflowId: (id: string | null) => void
   setRunStatus: (status: Partial<RunStatus>) => void
   updateNodePreview: (nodeId: string, preview: string) => void
+  clearAll: () => void
 }
 
-export const useWorkflowStore = create<WorkflowState>((set) => ({
-  nodes: [],
-  edges: [],
-  workflowId: null,
-  runStatus: {
-    runId: null,
-    status: 'idle',
-    nodeStatuses: {},
-    nodeOutputs: {},
-  },
-  addNode: (node) =>
-    set((state) => ({
-      nodes: [...state.nodes, node],
-    })),
-  updateNode: (nodeId, updates) =>
-    set((state) => ({
-      nodes: state.nodes.map((node) =>
-        node.id === nodeId ? { ...node, ...updates } : node
-      ),
-    })),
-  updateNodeData: (nodeId, dataUpdates) =>
-    set((state) => ({
-      nodes: state.nodes.map((node) =>
-        node.id === nodeId
-          ? { ...node, data: { ...node.data, ...dataUpdates } }
-          : node
-      ),
-    })),
-  deleteNode: (nodeId) =>
-    set((state) => ({
-      nodes: state.nodes.filter((node) => node.id !== nodeId),
-      edges: state.edges.filter(
-        (edge) => edge.source !== nodeId && edge.target !== nodeId
-      ),
-    })),
-  updateNodes: (nodes) => set({ nodes }),
-  updateEdges: (edges) => set({ edges }),
-  deleteEdge: (edgeId) =>
-    set((state) => ({
-      edges: state.edges.filter((edge) => edge.id !== edgeId),
-    })),
-  setWorkflowId: (id) => set({ workflowId: id }),
-  setRunStatus: (status) =>
-    set((state) => ({
-      runStatus: { ...state.runStatus, ...status },
-    })),
-  updateNodePreview: (nodeId, preview) =>
-    set((state) => ({
-      nodes: state.nodes.map((node) =>
-        node.id === nodeId
-          ? { ...node, data: { ...node.data, outputPreview: preview } }
-          : node
-      ),
-    })),
-}))
+export const useWorkflowStore = create<WorkflowState>()(
+  persist(
+    (set) => ({
+      nodes: [],
+      edges: [],
+      workflowId: null,
+      runStatus: {
+        runId: null,
+        status: 'idle',
+        nodeStatuses: {},
+        nodeOutputs: {},
+      },
+      addNode: (node) =>
+        set((state) => {
+          const newNodes = [...state.nodes, node]
+          return { nodes: newNodes }
+        }),
+      updateNode: (nodeId, updates) =>
+        set((state) => {
+          const newNodes = state.nodes.map((node) =>
+            node.id === nodeId ? { ...node, ...updates } : node
+          )
+          return { nodes: newNodes }
+        }),
+      updateNodeData: (nodeId, dataUpdates) =>
+        set((state) => {
+          const newNodes = state.nodes.map((node) =>
+            node.id === nodeId
+              ? { ...node, data: { ...node.data, ...dataUpdates } }
+              : node
+          )
+          return { nodes: newNodes }
+        }),
+      deleteNode: (nodeId) =>
+        set((state) => ({
+          nodes: state.nodes.filter((node) => node.id !== nodeId),
+          edges: state.edges.filter(
+            (edge) => edge.source !== nodeId && edge.target !== nodeId
+          ),
+        })),
+      updateNodes: (nodes) => set({ nodes }),
+      updateEdges: (edges) => set({ edges }),
+      deleteEdge: (edgeId) =>
+        set((state) => ({
+          edges: state.edges.filter((edge) => edge.id !== edgeId),
+        })),
+      setWorkflowId: (id) => set({ workflowId: id }),
+      setRunStatus: (status) =>
+        set((state) => ({
+          runStatus: { ...state.runStatus, ...status },
+        })),
+      updateNodePreview: (nodeId, preview) =>
+        set((state) => {
+          const newNodes = state.nodes.map((node) =>
+            node.id === nodeId
+              ? { ...node, data: { ...node.data, outputPreview: preview } }
+              : node
+          )
+          return { nodes: newNodes }
+        }),
+      clearAll: () =>
+        set({
+          nodes: [],
+          edges: [],
+          workflowId: null,
+          runStatus: {
+            runId: null,
+            status: 'idle',
+            nodeStatuses: {},
+            nodeOutputs: {},
+          },
+        }),
+    }),
+    {
+      name: 'workflow-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        nodes: state.nodes,
+        edges: state.edges,
+        workflowId: state.workflowId,
+      }),
+    }
+  )
+)

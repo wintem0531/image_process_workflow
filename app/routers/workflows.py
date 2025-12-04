@@ -1,15 +1,18 @@
 """工作流路由"""
-from fastapi import APIRouter, HTTPException
-from typing import List
-import uuid
+
 import time
+import uuid
+from typing import List
+
+from fastapi import APIRouter, HTTPException
 
 from app.models.workflow import Workflow, WorkflowCreate, WorkflowUpdate
+from app.services import WorkflowStorage
 
 router = APIRouter()
 
-# 临时存储（生产环境应使用数据库）
-workflows_db: dict[str, Workflow] = {}
+# 使用持久化存储替代内存存储
+storage = WorkflowStorage()
 
 
 @router.post("", response_model=Workflow)
@@ -25,25 +28,26 @@ async def create_workflow(workflow_data: WorkflowCreate):
         created_at=time.strftime("%Y-%m-%d %H:%M:%S"),
         updated_at=time.strftime("%Y-%m-%d %H:%M:%S"),
     )
-    workflows_db[workflow_id] = workflow
+    storage.save(workflow)
     return workflow
 
 
 @router.get("/{workflow_id}", response_model=Workflow)
 async def get_workflow(workflow_id: str):
     """获取工作流"""
-    if workflow_id not in workflows_db:
+    workflow = storage.get(workflow_id)
+    if not workflow:
         raise HTTPException(status_code=404, detail="工作流不存在")
-    return workflows_db[workflow_id]
+    return workflow
 
 
 @router.put("/{workflow_id}", response_model=Workflow)
 async def update_workflow(workflow_id: str, workflow_data: WorkflowUpdate):
     """更新工作流"""
-    if workflow_id not in workflows_db:
+    workflow = storage.get(workflow_id)
+    if not workflow:
         raise HTTPException(status_code=404, detail="工作流不存在")
 
-    workflow = workflows_db[workflow_id]
     if workflow_data.name is not None:
         workflow.name = workflow_data.name
     if workflow_data.description is not None:
@@ -54,21 +58,19 @@ async def update_workflow(workflow_id: str, workflow_data: WorkflowUpdate):
         workflow.links = workflow_data.links
     workflow.updated_at = time.strftime("%Y-%m-%d %H:%M:%S")
 
-    workflows_db[workflow_id] = workflow
+    storage.save(workflow)
     return workflow
 
 
 @router.delete("/{workflow_id}")
 async def delete_workflow(workflow_id: str):
     """删除工作流"""
-    if workflow_id not in workflows_db:
+    if not storage.delete(workflow_id):
         raise HTTPException(status_code=404, detail="工作流不存在")
-    del workflows_db[workflow_id]
     return {"message": "工作流已删除"}
 
 
 @router.get("", response_model=List[Workflow])
 async def list_workflows():
     """列出所有工作流"""
-    return list(workflows_db.values())
-
+    return storage.list_all()

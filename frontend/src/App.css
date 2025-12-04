@@ -64,3 +64,15 @@
   border: 1px solid #333;
   border-radius: 4px;
 }
+
+/* 通知动画 */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
